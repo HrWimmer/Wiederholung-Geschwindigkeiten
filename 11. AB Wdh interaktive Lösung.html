@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interaktives Arbeitsblatt: Mechanik (Geschwindigkeiten)</title>
+    
+    <!-- MathJax für korrekte Darstellung von mathematischen Formeln -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1e40af;
+            --bg-color: #f1f5f9;
+            --panel-bg: #ffffff;
+            --text-color: #1e293b;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --warning: #eab308;
+            --border-color: #cbd5e1;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
+        body { background-color: var(--bg-color); color: var(--text-color); padding: 20px; line-height: 1.6; }
+        
+        .header { text-align: center; margin-bottom: 30px; background: var(--panel-bg); padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 5px solid var(--primary);}
+        h1 { color: var(--primary); margin-bottom: 10px;}
+        h2 { border-bottom: 2px solid var(--primary); padding-bottom: 5px; margin-top: 20px; margin-bottom: 15px; color: var(--primary-hover);}
+        h3 { margin-bottom: 10px; font-size: 1.1em;}
+
+        .container { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 30px; }
+        .panel { background: var(--panel-bg); padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+
+        /* Buttons & Inputs */
+        input[type="text"], input[type="number"] { padding: 8px; border: 1px solid var(--border-color); border-radius: 5px; font-family: monospace; font-size: 1em; width: 100px; transition: border-color 0.2s;}
+        input[type="text"]:focus, input[type="number"]:focus { outline: none; border-color: var(--primary); }
+        
+        button { padding: 10px 15px; border: none; border-radius: 5px; background: var(--primary); color: white; font-weight: bold; cursor: pointer; transition: background 0.2s; font-size: 0.9em;}
+        button:hover { background: var(--primary-hover); }
+        .btn-check { background: var(--success); }
+        .btn-check:hover { background: #15803d; }
+        .btn-hint { background: #64748b; font-size: 0.8em; padding: 6px 10px;}
+        .btn-hint:hover { background: #475569; }
+
+        .feedback { margin-top: 10px; font-weight: bold; min-height: 20px; font-size: 0.9em; padding: 10px; border-radius: 5px; display: none;}
+        .feedback.correct { display: block; background: #dcfce7; color: #166534; border: 1px solid #bbf7d0;}
+        .feedback.incorrect { display: block; background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;}
+        .feedback.info { display: block; background: #e0f2fe; color: #075985; border: 1px solid #bae6fd;}
+
+        /* --- AUFGABE 1: TABELLE --- */
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid var(--border-color); padding: 12px; text-align: center; }
+        th { background-color: #f8fafc; font-weight: bold; }
+        tr:nth-child(even) { background-color: #f8fafc; }
+        .hint-box { margin-top: 10px; padding: 10px; background: #fffbeb; border-left: 4px solid var(--warning); display: none; font-size: 0.9em;}
+
+        /* --- AUFGABE 2: SIMULATION --- */
+        #sim-container { position: relative; width: 100%; height: 200px; background: #a3b8c2; border-radius: 10px; overflow: hidden; margin-bottom: 20px; border: 2px solid #64748b;}
+        #road { position: absolute; bottom: 20px; width: 100%; height: 60px; background: #334155; }
+        .line { position: absolute; top: 28px; width: 30px; height: 4px; background: white; }
+        #stop-line { position: absolute; right: 150px; bottom: 20px; width: 8px; height: 60px; background: white; z-index: 10;}
+        
+        #car { position: absolute; bottom: 30px; left: 0px; width: 60px; height: 30px; background: var(--primary); border-radius: 5px; z-index: 20;}
+        .wheel { position: absolute; bottom: -5px; width: 14px; height: 14px; background: black; border-radius: 50%; }
+        #w1 { left: 5px; } #w2 { right: 5px; }
+        
+        #traffic-light { position: absolute; right: 140px; bottom: 85px; width: 24px; height: 60px; background: #1e293b; border-radius: 5px; display: flex; flex-direction: column; justify-content: space-around; align-items: center; padding: 4px 0;}
+        .light { width: 14px; height: 14px; border-radius: 50%; background: #334155; }
+        #light-red.active { background: #ef4444; box-shadow: 0 0 10px #ef4444;}
+        #light-yellow.active { background: #eab308; box-shadow: 0 0 10px #eab308;}
+        #light-green.active { background: #22c55e; box-shadow: 0 0 10px #22c55e;}
+        .pole { position: absolute; right: 150px; bottom: 20px; width: 4px; height: 65px; background: #475569; }
+
+        #blitzer { position: absolute; right: 50px; bottom: 85px; width: 20px; height: 25px; background: #64748b; border-radius: 3px; }
+        #lens { position: absolute; top: 5px; left: 2px; width: 10px; height: 10px; background: black; border-radius: 50%; }
+        .blitzer-pole { position: absolute; right: 58px; bottom: 20px; width: 4px; height: 65px; background: #475569; }
+        #flash { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0); pointer-events: none; z-index: 100; transition: background 0.1s; }
+
+        .dashboard { display: flex; justify-content: space-around; background: #1e293b; color: #38bdf8; padding: 10px; border-radius: 5px; font-family: monospace; font-size: 1.2em; margin-bottom: 20px;}
+        
+        .controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--border-color);}
+        .control-group { display: flex; flex-direction: column; }
+        input[type="range"] { width: 100%; cursor: pointer; }
+        .val-display { font-family: monospace; color: var(--primary); font-size: 1.1em;}
+
+        .task-box { border-left: 4px solid var(--primary); padding-left: 15px; margin-bottom: 20px; }
+
+        /* --- AUFGABE 3: FLUGSICHERHEIT --- */
+        .flight-diagram { width: 100%; max-width: 400px; margin: 0 auto 20px auto; display: block; }
+        .input-group { margin-bottom: 15px; display: flex; align-items: center; gap: 10px;}
+
+        /* --- AUFGABE 4: PFEILE --- */
+        .mc-container { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px; justify-content: center;}
+        .mc-option { border: 2px solid var(--border-color); border-radius: 10px; padding: 10px; cursor: pointer; transition: all 0.2s; background: white; text-align: center; width: 220px;}
+        .mc-option:hover { border-color: var(--primary); background: #f0fdf4;}
+        .mc-option.selected { border-color: var(--primary); background: #dbeafe; border-width: 3px;}
+        .mc-option svg { max-width: 100%; height: 120px; }
+        
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1>Ph8: Wiederholung Mechanik</h1>
+            <p>Thema: Geschwindigkeiten ($v = \frac{s}{t}$)</p>
+        </div>
+
+        <!-- ================= AUFGABE 1 ================= -->
+        <div class="panel">
+            <h2>Aufgabe 1: Tabellenübung</h2>
+            <p style="margin-bottom: 15px;">Ergänze in der Tabelle die fehlenden Größen. Achte auf die Einheiten! <br>
+            <small><b>Tipp:</b> Nutze Punkt oder Komma für Dezimalzahlen (z.B. 16.8 oder 16,8). Rechne bei Zeiten wenn nötig in Sekunden oder Stunden um.</small></p>
+
+            <div style="overflow-x: auto;">
+                <table id="table-a1">
+                    <tr>
+                        <th>Nr.</th>
+                        <th>Zurückgelegter Weg</th>
+                        <th>Benötigte Zeit</th>
+                        <th>Geschwindigkeit in $\frac{m}{s}$</th>
+                        <th>Geschwindigkeit in $\frac{km}{h}$</th>
+                        <th>Aktion</th>
+                    </tr>
+                    <!-- Row 1 -->
+                    <tr>
+                        <td>1</td>
+                        <td>54 km</td>
+                        <td>20 min</td>
+                        <td><input type="text" class="row-1" data-ans="45" placeholder="?"></td>
+                        <td><input type="text" class="row-1" data-ans="162" placeholder="?"></td>
+                        <td><button class="btn-check" onclick="checkRow(1)">Prüfen</button></td>
+                    </tr>
+                    <!-- Row 2 -->
+                    <tr>
+                        <td>2</td>
+                        <td><input type="text" class="row-2" data-ans="270" placeholder="in km"> km</td>
+                        <td>3 h</td>
+                        <td>$25 \, \frac{m}{s}$</td>
+                        <td><input type="text" class="row-2" data-ans="90" placeholder="?"></td>
+                        <td><button class="btn-check" onclick="checkRow(2)">Prüfen</button></td>
+                    </tr>
+                    <!-- Row 3 -->
+                    <tr>
+                        <td>3</td>
+                        <td>16,8 km</td>
+                        <td><input type="text" class="row-3" data-ans="8" placeholder="in min"> min</td>
+                        <td><input type="text" class="row-3" data-ans="35" placeholder="?"></td>
+                        <td>$126 \, \frac{km}{h}$</td>
+                        <td><button class="btn-check" onclick="checkRow(3)">Prüfen</button></td>
+                    </tr>
+                    <!-- Row 4 -->
+                    <tr>
+                        <td>4</td>
+                        <td><input type="text" class="row-4" data-ans="100" placeholder="in km"> km</td>
+                        <td>100 min</td>
+                        <td><input type="text" class="row-4" data-ans="16.67" placeholder="?"></td>
+                        <td>$60 \, \frac{km}{h}$</td>
+                        <td><button class="btn-check" onclick="checkRow(4)">Prüfen</button></td>
+                    </tr>
+                    <!-- Row 5 -->
+                    <tr>
+                        <td>5</td>
+                        <td>12960 m</td>
+                        <td>24 min</td>
+                        <td>$9 \, \frac{m}{s}$</td>
+                        <td><input type="text" class="row-5" data-ans="32.4" placeholder="?"></td>
+                        <td><button class="btn-check" onclick="checkRow(5)">Prüfen</button></td>
+                    </tr>
+                    <!-- Row 6 -->
+                    <tr>
+                        <td>6</td>
+                        <td>25 cm</td>
+                        <td><input type="text" class="row-6" data-ans="0.00833" placeholder="in s"> s</td>
+                        <td><input type="text" class="row-6" data-ans="30" placeholder="?"></td>
+                        <td>$108 \, \frac{km}{h}$</td>
+                        <td><button class="btn-check" onclick="checkRow(6)">Prüfen</button></td>
+                    </tr>
+                    <!-- Row 7 -->
+                    <tr>
+                        <td>7</td>
+                        <td>546 km</td>
+                        <td><input type="text" class="row-7" data-ans="any" placeholder="?"></td>
+                        <td><input type="text" class="row-7" data-ans="any" placeholder="?"></td>
+                        <td><input type="text" class="row-7" data-ans="any" placeholder="?"></td>
+                        <td><button class="btn-check" onclick="checkRow(7)">Prüfen</button></td>
+                    </tr>
+                    <!-- Row 8 -->
+                    <tr>
+                        <td>8</td>
+                        <td><input type="text" class="row-8" data-ans="5.568" placeholder="in km"> km</td>
+                        <td>1 h 17 min 20 s</td>
+                        <td>$1,2 \, \frac{m}{s}$</td>
+                        <td><input type="text" class="row-8" data-ans="4.32" placeholder="?"></td>
+                        <td><button class="btn-check" onclick="checkRow(8)">Prüfen</button></td>
+                    </tr>
+                    <!-- Row 9 -->
+                    <tr>
+                        <td>9</td>
+                        <td>30 m</td>
+                        <td><input type="text" class="row-9" data-ans="2.16" placeholder="in s"> s</td>
+                        <td><input type="text" class="row-9" data-ans="13.89" placeholder="?"></td>
+                        <td>$50 \, \frac{km}{h}$</td>
+                        <td><button class="btn-check" onclick="checkRow(9)">Prüfen</button></td>
+                    </tr>
+                </table>
+            </div>
+            
+            <button class="btn-hint" onclick="toggleHint('hint-a1')">Generellen Tipp anzeigen</button>
+            <div id="hint-a1" class="hint-box">
+                <b>Umrechnungen:</b><br>
+                - von $\frac{m}{s}$ zu $\frac{km}{h}$: <b>$\cdot \, 3,6$</b><br>
+                - von $\frac{km}{h}$ zu $\frac{m}{s}$: <b>$: \, 3,6$</b><br>
+                - Formeldreieck: $s = v \cdot t$ &nbsp;|&nbsp; $v = \frac{s}{t}$ &nbsp;|&nbsp; $t = \frac{s}{v}$
+            </div>
+            <div id="fb-table" class="feedback"></div>
+        </div>
+
+        <!-- ================= AUFGABE 2 ================= -->
+        <div class="panel">
+            <h2>Aufgabe 2: Blitzer an der Ampel</h2>
+            <p>Häufig werden Straßenkreuzungen durch stationäre Kameras überwacht. Ein solcher Blitzer löst aus, wenn ein Fahrzeug nach einer Zeitspanne von etwa <b>0,5 s</b>, nachdem die Ampel auf <b>Rot</b> geschaltet hat, noch in die Kreuzung einfährt.</p>
+            
+            <!-- Simulation -->
+            <div id="sim-container" style="margin-top: 20px;">
+                <div id="road"></div>
+                <div id="road-lines"></div>
+                <div id="stop-line"></div>
+                
+                <div class="pole"></div>
+                <div id="traffic-light">
+                    <div class="light" id="light-red"></div>
+                    <div class="light" id="light-yellow"></div>
+                    <div class="light active" id="light-green"></div>
+                </div>
+
+                <div class="blitzer-pole"></div>
+                <div id="blitzer"><div id="lens"></div></div>
+
+                <div id="car">
+                    <div class="wheel" id="w1"></div>
+                    <div class="wheel" id="w2"></div>
+                </div>
+                <div id="flash"></div>
+            </div>
+
+            <div class="dashboard">
+                <div>Uhr: <span id="dash-time">0.00</span> s</div>
+                <div>Abstand zur Haltelinie: <span id="dash-dist">35.0</span> m</div>
+                <div>Status: <span id="dash-status" style="color: #22c55e;">FÄHRT</span></div>
+            </div>
+
+            <div class="controls">
+                <div class="control-group">
+                    <label>Geschwindigkeit ($v$): <span class="val-display" id="val-v">50</span> km/h</label>
+                    <input type="range" id="input-v" min="10" max="100" value="50" step="1">
+                </div>
+                <div class="control-group">
+                    <label>Abstand bei Gelb ($s_{gelb}$): <span class="val-display" id="val-s">35</span> m</label>
+                    <input type="range" id="input-s" min="10" max="60" value="35" step="1">
+                </div>
+                <div class="control-group">
+                    <label>Dauer Gelbphase ($t_{gelb}$): <span class="val-display" id="val-t">2.0</span> s</label>
+                    <input type="range" id="input-t" min="1.0" max="4.0" value="2.0" step="0.5">
+                </div>
+            </div>
+            <div style="text-align: center; margin-bottom: 30px;">
+                <button onclick="startSim()" id="btn-start" style="font-size: 1.1em; padding: 12px 24px;">▶ Simulation Starten</button>
+                <button onclick="initSim()" style="background: #64748b; margin-left: 10px;">↻ Reset</button>
+            </div>
+
+            <div class="task-box">
+                <h3>a) Ermittle durch Rechnung, ob das Auto geblitzt wird.</h3>
+                <p>Gegeben: $v = 50 \, \frac{km}{h}$, $s = 35 \, m$, Gelbphase = $2 \, s$. Toleranz = $0,5 \, s$.</p>
+                <div class="input-group">
+                    Zeit bis zur Ampel: <input type="text" id="a2-t" placeholder="z.B. 2.1"> Sekunden 
+                    <button class="btn-check" onclick="checkA2A()">Prüfen</button>
+                </div>
+                <div id="fb-a2a" class="feedback"></div>
+            </div>
+
+            <div class="task-box">
+                <h3>b) Zusatz: Welchen Abstand darf ein Auto höchstens haben, um nicht geblitzt zu werden?</h3>
+                <p>Gegeben: $v = 50 \, \frac{km}{h}$. Wann exakt löst der Blitzer frühestens aus? Setze diese Zeit in die Formel ein.</p>
+                <div class="input-group">
+                    Maximaler Abstand: <input type="text" id="a2-s" placeholder="z.B. 30.5"> Meter 
+                    <button class="btn-check" onclick="checkA2B()">Prüfen</button>
+                </div>
+                <p><small><b>Teste es in der Simulation:</b> Stelle den Abstand auf 34m. Laut Rechnung solltest du sicher drüber kommen. Starte die Simulation, um es zu verifizieren!</small></p>
+                <div id="fb-a2b" class="feedback"></div>
+            </div>
+        </div>
+
+        <!-- ================= AUFGABE 3 ================= -->
+        <div class="panel">
+            <h2>Aufgabe 3: Flugsicherheit</h2>
+            <p>Schrecksekunde in der Flugsicherungszentrale München: Der Bildschirm zeigt, dass sich die Flugbahnen von zwei Flugzeugen auf gleicher Höhe kreuzen.</p>
+            
+            <svg class="flight-diagram" viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+                <!-- Flugzeug 1 Bahn -->
+                <line x1="50" y1="50" x2="250" y2="50" stroke="#cbd5e1" stroke-width="4" stroke-dasharray="5,5" />
+                <polygon points="50,40 70,50 50,60" fill="var(--primary)" />
+                <text x="50" y="30" font-family="monospace" font-size="14" fill="var(--primary)">v = 450 km/h</text>
+                <text x="140" y="45" font-family="monospace" font-size="12">4 km bis Kreuzung</text>
+                
+                <!-- Flugzeug 2 Bahn -->
+                <line x1="200" y1="180" x2="200" y2="20" stroke="#cbd5e1" stroke-width="4" stroke-dasharray="5,5" />
+                <polygon points="190,180 210,180 200,160" fill="var(--danger)" />
+                <text x="210" y="170" font-family="monospace" font-size="14" fill="var(--danger)">v = 780 km/h</text>
+                <text x="210" y="100" font-family="monospace" font-size="12">8 km bis Kreuzung</text>
+                
+                <!-- Kreuzungspunkt -->
+                <circle cx="200" cy="50" r="6" fill="#eab308" />
+            </svg>
+
+            <div class="task-box">
+                <h3>Entscheide durch Rechnung, ob Zusammenstoßgefahr besteht.</h3>
+                <div class="input-group">
+                    Zeit Flugzeug 1 (oben) bis zur Kreuzung: <input type="text" id="a3-t1" placeholder="Zeit">
+                </div>
+                <div class="input-group">
+                    Zeit Flugzeug 2 (unten) bis zur Kreuzung: <input type="text" id="a3-t2" placeholder="Zeit">
+                </div>
+                <button class="btn-check" onclick="checkA3()">Auswertung prüfen</button>
+                <button class="btn-hint" onclick="toggleHint('hint-a3')">Tipp</button>
+                
+                <div id="hint-a3" class="hint-box">
+                    Berechne erst die Zeit in Stunden ($t = \frac{s}{v}$). <br>
+                    Um Stunden in Sekunden umzurechnen, multipliziere mit 3600 (denn $1h = 60 \cdot 60s$).<br>
+                    <i>Du kannst die Ergebnisse in das Feld oben entweder in Sekunden oder als Kommazahl in Stunden eintragen!</i>
+                </div>
+                <div id="fb-a3" class="feedback"></div>
+            </div>
+        </div>
+
+        <!-- ================= AUFGABE 4 ================= -->
+        <div class="panel">
+            <h2>Aufgabe 4: Fingerübungen zum Geschwindigkeitspfeil</h2>
+            
+            <div class="task-box">
+                <h3>a) Der Kreisverkehr</h3>
+                <p>Das Auto durchfährt den Kreisverkehr mit <b>konstantem Geschwindigkeitsbetrag</b> von $12 \, \frac{km}{h}$. Welches Bild zeigt die Geschwindigkeitspfeile physikalisch korrekt?</p>
+                <div class="mc-container" id="mc-kreis">
+                    <!-- Option 1 -->
+                    <div class="mc-option" onclick="selectMC('kreis', 1)">
+                        <svg viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="40" fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4" />
+                            <line x1="50" y1="10" x2="50" y2="40" stroke="red" stroke-width="2" marker-end="url(#arrow)" />
+                            <line x1="90" y1="50" x2="60" y2="50" stroke="red" stroke-width="2" marker-end="url(#arrow)" />
+                        </svg>
+                        <p>Option 1</p>
+                    </div>
+                    <!-- Option 2 -->
+                    <div class="mc-option" onclick="selectMC('kreis', 2)">
+                        <svg viewBox="0 0 100 100">
+                            <defs>
+                                <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="red" /></marker>
+                            </defs>
+                            <circle cx="50" cy="50" r="40" fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4" />
+                            <line x1="50" y1="10" x2="80" y2="10" stroke="red" stroke-width="2" marker-end="url(#arrow)" />
+                            <line x1="90" y1="50" x2="90" y2="80" stroke="red" stroke-width="2" marker-end="url(#arrow)" />
+                            <line x1="50" y1="90" x2="20" y2="90" stroke="red" stroke-width="2" marker-end="url(#arrow)" />
+                        </svg>
+                        <p>Option 2</p>
+                    </div>
+                    <!-- Option 3 -->
+                    <div class="mc-option" onclick="selectMC('kreis', 3)">
+                        <svg viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="40" fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4" />
+                            <line x1="50" y1="10" x2="70" y2="10" stroke="red" stroke-width="2" marker-end="url(#arrow)" />
+                            <line x1="90" y1="50" x2="90" y2="90" stroke="red" stroke-width="2" marker-end="url(#arrow)" />
+                            <line x1="50" y1="90" x2="40" y2="90" stroke="red" stroke-width="2" marker-end="url(#arrow)" />
+                        </svg>
+                        <p>Option 3</p>
+                    </div>
+                </div>
+                <button class="btn-check" onclick="checkA4A()">Prüfen</button>
+                <div id="fb-a4a" class="feedback"></div>
+            </div>
+
+            <div class="task-box">
+                <h3>b) Die Wurfparabel</h3>
+                <p>Ein Ball wird im Winkel abgeschossen. Wie verändern sich die Geschwindigkeitspfeile während des Fluges?</p>
+                <div class="mc-container" id="mc-wurf">
+                    <!-- Option 1 (Richtig) -->
+                    <div class="mc-option" onclick="selectMC('wurf', 1)">
+                        <svg viewBox="0 0 200 120">
+                            <path d="M 20 90 Q 100 -50 180 90" fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4" />
+                            <circle cx="40" cy="59" r="3" fill="var(--text-color)"/><text x="30" y="55" font-size="10">1</text>
+                            <circle cx="70" cy="30" r="3" fill="var(--text-color)"/><text x="60" y="25" font-size="10">2</text>
+                            <circle cx="100" cy="20" r="3" fill="var(--text-color)"/><text x="95" y="12" font-size="10">3</text>
+                            <circle cx="140" cy="37.5" r="3" fill="var(--text-color)"/><text x="145" y="32" font-size="10">4</text>
+                            
+                            <!-- Tangential, Längen variieren passend zur Schwerkraft -->
+                            <line x1="40" y1="59" x2="65" y2="34" stroke="red" stroke-width="2" marker-end="url(#arrow)" /> 
+                            <line x1="70" y1="30" x2="88" y2="16.5" stroke="red" stroke-width="2" marker-end="url(#arrow)" /> 
+                            <line x1="100" y1="20" x2="115" y2="20" stroke="red" stroke-width="2" marker-end="url(#arrow)" /> 
+                            <line x1="140" y1="37.5" x2="156" y2="51.5" stroke="red" stroke-width="2" marker-end="url(#arrow)" />
+                        </svg>
+                        <p>Tangential, Längen variieren</p>
+                    </div>
+                    <!-- Option 2 (Falsch) -->
+                    <div class="mc-option" onclick="selectMC('wurf', 2)">
+                        <svg viewBox="0 0 200 120">
+                            <path d="M 20 90 Q 100 -50 180 90" fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4" />
+                            <circle cx="40" cy="59" r="3" fill="var(--text-color)"/><text x="30" y="55" font-size="10">1</text>
+                            <circle cx="70" cy="30" r="3" fill="var(--text-color)"/><text x="60" y="25" font-size="10">2</text>
+                            <circle cx="100" cy="20" r="3" fill="var(--text-color)"/><text x="95" y="12" font-size="10">3</text>
+                            <circle cx="140" cy="37.5" r="3" fill="var(--text-color)"/><text x="145" y="32" font-size="10">4</text>
+                            
+                            <!-- Tangential, aber alle gleich lang -->
+                            <line x1="40" y1="59" x2="58" y2="41" stroke="red" stroke-width="2" marker-end="url(#arrow)" />
+                            <line x1="70" y1="30" x2="90" y2="15" stroke="red" stroke-width="2" marker-end="url(#arrow)" />
+                            <line x1="100" y1="20" x2="125" y2="20" stroke="red" stroke-width="2" marker-end="url(#arrow)" />
+                            <line x1="140" y1="37.5" x2="159" y2="54" stroke="red" stroke-width="2" marker-end="url(#arrow)" />
+                        </svg>
+                        <p>Alle Pfeile gleich lang</p>
+                    </div>
+                    <!-- Option 3 (Falsch) -->
+                    <div class="mc-option" onclick="selectMC('wurf', 3)">
+                        <svg viewBox="0 0 200 120">
+                            <path d="M 20 90 Q 100 -50 180 90" fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4" />
+                            <circle cx="40" cy="59" r="3" fill="var(--text-color)"/><text x="30" y="55" font-size="10">1</text>
+                            <circle cx="70" cy="30" r="3" fill="var(--text-color)"/><text x="60" y="25" font-size="10">2</text>
+                            <circle cx="100" cy="20" r="3" fill="var(--text-color)"/><text x="95" y="12" font-size="10">3</text>
+                            <circle cx="140" cy="37.5" r="3" fill="var(--text-color)"/><text x="145" y="32" font-size="10">4</text>
+                            
+                            <!-- Nur waagrecht -->
+                            <line x1="40" y1="59" x2="65" y2="59" stroke="red" stroke-width="2" marker-end="url(#arrow)" />
+                            <line x1="70" y1="30" x2="95" y2="30" stroke="red" stroke-width="2" marker-end="url(#arrow)" />
+                            <line x1="100" y1="20" x2="125" y2="20" stroke="red" stroke-width="2" marker-end="url(#arrow)" />
+                            <line x1="140" y1="37.5" x2="165" y2="37.5" stroke="red" stroke-width="2" marker-end="url(#arrow)" />
+                        </svg>
+                        <p>Pfeile zeigen immer waagrecht</p>
+                    </div>
+                </div>
+                <button class="btn-check" onclick="checkA4B()">Prüfen</button>
+                <div id="fb-a4b" class="feedback"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // --- Hilfsfunktionen ---
+        function parseLocalFloat(val) {
+            if(!val) return NaN;
+            return parseFloat(val.replace(',', '.'));
+        }
+        function toggleHint(id) {
+            const el = document.getElementById(id);
+            el.style.display = el.style.display === 'block' ? 'none' : 'block';
+            if (el.style.display === 'block' && window.MathJax) {
+                MathJax.typesetPromise([el]);
+            }
+        }
+        function showFeedback(elId, isCorrect, text) {
+            const el = document.getElementById(elId);
+            el.className = 'feedback ' + (isCorrect ? 'correct' : 'incorrect');
+            el.innerHTML = text;
+            if (window.MathJax) {
+                MathJax.typesetPromise([el]);
+            }
+        }
+
+        // --- AUFGABE 1 ---
+        function checkRow(rowNum) {
+            let inputs = document.querySelectorAll(`.row-${rowNum}`);
+            let allOk = true;
+
+            // Fehlerhafte Zeile im Original-PDF abfangen
+            if (rowNum === 7) {
+                showFeedback("fb-table", false, `Hinweis: In Zeile 7 fehlt auf dem Original-Arbeitsblatt leider eine Angabe (nur der Weg ist gegeben). Die Aufgabe ist so nicht eindeutig lösbar!`);
+                return;
+            }
+            
+            inputs.forEach(inEl => {
+                let val = parseLocalFloat(inEl.value);
+                let targetAttr = inEl.getAttribute('data-ans');
+                
+                if (targetAttr === 'any') {
+                    inEl.style.borderColor = "var(--warning)"; 
+                    inEl.style.backgroundColor = "#fef3c7";
+                    return;
+                }
+
+                let target = parseFloat(targetAttr);
+                
+                // Toleranz für Rundungen (ca 5% relativer Fehler oder absolut sehr klein, wichtig für Zeile 6)
+                let relativeError = Math.abs(val - target) / target;
+                let absoluteError = Math.abs(val - target);
+                
+                let ok = relativeError < 0.05 || absoluteError < 0.02;
+                
+                if(ok) {
+                    inEl.style.borderColor = "var(--success)"; 
+                    inEl.style.backgroundColor = "#dcfce7";
+                } else {
+                    inEl.style.borderColor = "var(--danger)"; 
+                    inEl.style.backgroundColor = "#fee2e2";
+                    allOk = false;
+                }
+            });
+
+            if(allOk) {
+                showFeedback("fb-table", true, `Zeile ${rowNum} ist vollkommen richtig!`);
+            } else {
+                showFeedback("fb-table", false, `In Zeile ${rowNum} gibt es noch Fehler. Rechne nochmal nach.`);
+            }
+        }
+
+        // --- AUFGABE 2 (SIMULATION) ---
+        const SCALE = 5; 
+        const STOP_LINE_X = 850; 
+        
+        let simState = {
+            running: false,
+            time: 0, 
+            v_kmh: 50,
+            v_ms: 50 / 3.6,
+            s_gelb: 35, 
+            t_gelb: 2.0,
+            startX: 0,
+            timeOfCrossing: 0,
+            willFlash: false,
+            hasCrossed: false,
+            lastFrameTime: 0
+        };
+
+        const carEl = document.getElementById('car');
+        const flashEl = document.getElementById('flash');
+        const dashTime = document.getElementById('dash-time');
+        const dashDist = document.getElementById('dash-dist');
+        const dashStatus = document.getElementById('dash-status');
+        
+        const roadLines = document.getElementById('road-lines');
+        for(let i=0; i<1000; i+=60) {
+            let line = document.createElement('div');
+            line.className = 'line';
+            line.style.left = i + 'px';
+            roadLines.appendChild(line);
+        }
+
+        function initSim() {
+            simState.v_kmh = parseInt(document.getElementById('input-v').value);
+            simState.v_ms = simState.v_kmh / 3.6;
+            simState.s_gelb = parseInt(document.getElementById('input-s').value);
+            simState.t_gelb = parseFloat(document.getElementById('input-t').value);
+            
+            simState.startX = STOP_LINE_X - (simState.s_gelb * SCALE) - 60; 
+            
+            // EXAKTE BERECHNUNG DES ÜBERQUERUNGSZEITPUNKTS
+            simState.timeOfCrossing = simState.s_gelb / simState.v_ms;
+            let redToleranceTime = simState.t_gelb + 0.5;
+            
+            // Mathematisch präzise Feststellung, ob ein Blitz erfolgen wird (verhindert Frame-Rundungsfehler)
+            simState.willFlash = simState.timeOfCrossing > redToleranceTime;
+
+            simState.time = 0;
+            simState.hasCrossed = false;
+            simState.running = false;
+            
+            carEl.style.left = simState.startX + 'px';
+            dashTime.innerText = "0.00";
+            dashDist.innerText = simState.s_gelb.toFixed(1);
+            
+            setLight('yellow');
+            flashEl.style.background = 'rgba(255,255,255,0)';
+            dashStatus.innerText = "BEREIT";
+            dashStatus.style.color = "white";
+        }
+
+        function setLight(color) {
+            document.getElementById('light-red').classList.remove('active');
+            document.getElementById('light-yellow').classList.remove('active');
+            document.getElementById('light-green').classList.remove('active');
+            document.getElementById('light-' + color).classList.add('active');
+        }
+
+        function triggerFlash() {
+            flashEl.style.background = 'rgba(255,255,255,0.8)';
+            dashStatus.innerText = "GEBLITZT!";
+            dashStatus.style.color = "var(--danger)";
+            setTimeout(() => { flashEl.style.background = 'rgba(255,255,255,0)'; }, 100);
+            setTimeout(() => { flashEl.style.background = 'rgba(255,255,255,0.6)'; }, 200);
+            setTimeout(() => { flashEl.style.background = 'rgba(255,255,255,0)'; }, 300);
+        }
+
+        function loop(timestamp) {
+            if(!simState.running) return;
+            if (!simState.lastFrameTime) simState.lastFrameTime = timestamp;
+            const dt = (timestamp - simState.lastFrameTime) / 1000; 
+            simState.lastFrameTime = timestamp;
+
+            simState.time += dt;
+
+            // Ampel-Logik
+            if (simState.time >= simState.t_gelb) setLight('red');
+
+            // Absolut genaue Positionierung basierend auf Zeit
+            let currentX = simState.startX + (simState.v_ms * simState.time * SCALE);
+            carEl.style.left = currentX + 'px';
+            
+            let distToLine = (STOP_LINE_X - (currentX + 60)) / SCALE;
+
+            dashTime.innerText = simState.time.toFixed(2);
+            if(distToLine >= 0) dashDist.innerText = distToLine.toFixed(1);
+            else dashDist.innerText = "0.0";
+
+            // Präziser Kollisions-Check basierend auf dem vorberechneten exakten Zeitpunkt
+            if (simState.time >= simState.timeOfCrossing && !simState.hasCrossed) {
+                simState.hasCrossed = true;
+                if (simState.willFlash) {
+                    triggerFlash();
+                } else {
+                    dashStatus.innerText = "DRÜBER";
+                    dashStatus.style.color = "var(--success)";
+                }
+            }
+
+            if (currentX > 1000) simState.running = false;
+            else requestAnimationFrame(loop);
+        }
+
+        document.getElementById('input-v').addEventListener('input', (e) => { document.getElementById('val-v').innerText = e.target.value; initSim(); });
+        document.getElementById('input-s').addEventListener('input', (e) => { document.getElementById('val-s').innerText = e.target.value; initSim(); });
+        document.getElementById('input-t').addEventListener('input', (e) => { document.getElementById('val-t').innerText = parseFloat(e.target.value).toFixed(1); initSim(); });
+
+        function startSim() {
+            if(simState.running) return;
+            initSim();
+            simState.running = true;
+            simState.lastFrameTime = performance.now();
+            dashStatus.innerText = "FÄHRT...";
+            dashStatus.style.color = "var(--warning)";
+            requestAnimationFrame(loop);
+        }
+
+        function checkA2A() {
+            let t = parseLocalFloat(document.getElementById('a2-t').value);
+            if(Math.abs(t - 2.52) < 0.05 || Math.abs(t - 2.5) < 0.05) {
+                showFeedback("fb-a2a", true, `Richtig! $t = \\frac{s}{v} = \\frac{35}{13,89} \\approx 2,52 \\, s$. Da der Blitzer nach $2,0 + 0,5 = 2,5 \\, s$ auslöst, wird das Auto geblitzt!`);
+            } else {
+                showFeedback("fb-a2a", false, `Falsch. Berechne $v$ in $\\frac{m}{s}$ und nutze $t = \\frac{s}{v}$.`);
+            }
+        }
+
+        function checkA2B() {
+            let s = parseLocalFloat(document.getElementById('a2-s').value);
+            if(Math.abs(s - 34.72) < 0.5) {
+                showFeedback("fb-a2b", true, `Perfekt! $s = v \\cdot t_{max} = 13,89 \\, \\frac{m}{s} \\cdot 2,5 \\, s = 34,72 \\, m$. Teste es oben in der Simulation mit 34m!`);
+            } else {
+                showFeedback("fb-a2b", false, `Nicht ganz. Überlege: Wie lange darf das Auto MAXIMAL brauchen? (2,0s + 0,5s = 2,5s). Setze diese Zeit in $s = v \\cdot t$ ein.`);
+            }
+        }
+
+        // --- Check Logik Aufgabe 3 ---
+        function checkA3() {
+            let t1 = parseLocalFloat(document.getElementById('a3-t1').value);
+            let t2 = parseLocalFloat(document.getElementById('a3-t2').value);
+            
+            // t1 und t2 können in Sekunden (ca. 32s) oder in Stunden (ca. 0.0089h) angegeben werden
+            let ok1 = (Math.abs(t1 - 32) < 1) || (Math.abs(t1 - 4/450) < 0.001);
+            let ok2 = (Math.abs(t2 - 36.9) < 1) || (Math.abs(t2 - 8/780) < 0.001);
+
+            if(ok1 && ok2) {
+                showFeedback("fb-a3", true, `Exzellent berechnet! Flugzeug 1 passiert den Punkt nach ca. 32 Sekunden (bzw. $0,0089 \\, h$), Flugzeug 2 erst nach ca. 37 Sekunden (bzw. $0,0103 \\, h$). Es besteht physikalisch gesehen <b>keine unmittelbare Zusammenstoßgefahr</b>.`);
+            } else {
+                showFeedback("fb-a3", false, `Da stimmt etwas mit den Zeiten nicht. Rechne $t = \\frac{s}{v}$. Du kannst die Zeit wahlweise in Stunden oder Sekunden angeben.`);
+            }
+        }
+
+        // --- Check Logik Aufgabe 4 ---
+        let selectedA4A = null;
+        let selectedA4B = null;
+
+        function selectMC(task, optionNum) {
+            const container = document.getElementById('mc-' + task);
+            const options = container.querySelectorAll('.mc-option');
+            options.forEach(opt => opt.classList.remove('selected'));
+            options[optionNum-1].classList.add('selected');
+
+            if(task === 'kreis') selectedA4A = optionNum;
+            if(task === 'wurf') selectedA4B = optionNum;
+        }
+
+        function checkA4A() {
+            if(!selectedA4A) return;
+            if(selectedA4A === 2) {
+                showFeedback("fb-a4a", true, `Richtig! Die Pfeile müssen <b>tangential</b> (geradeaus) am Kreis anliegen und wegen des konstanten Betrags von $12 \\, \\frac{km}{h}$ alle <b>gleich lang</b> sein.`);
+            } else {
+                showFeedback("fb-a4a", false, `Leider falsch. Überlege: Ändert sich der Betrag der Geschwindigkeit? Und in welche Richtung zeigt der Tacho in jedem Moment?`);
+            }
+        }
+
+        function checkA4B() {
+            if(!selectedA4B) return;
+            if(selectedA4B === 1) {
+                showFeedback("fb-a4b", true, `Richtig! Die Pfeile müssen stets <b>tangential</b> an der Kurve liegen. Am Start (1) ist der Pfeil am längsten. Am höchsten Punkt (3) bremst die Schwerkraft den Ball ab, der Pfeil hat dort nur noch eine waagrechte Komponente und ist am kürzesten. Beim Herunterfallen (4) wird er wieder länger.`);
+            } else {
+                showFeedback("fb-a4b", false, `Falsch. Denk an die Schwerkraft. Bleibt ein nach oben geworfener Ball immer gleich schnell? In welche Richtung zeigt die Geschwindigkeit an jedem Punkt?`);
+            }
+        }
+
+        // Initialisierung
+        window.onload = initSim;
+    </script>
+</body>
+</html>
